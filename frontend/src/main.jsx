@@ -3,7 +3,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
+import { parseUPISMS } from './utils/upiParser.js';
 import { TransactionProvider } from './context/TransactionContext.jsx'; // Import the new provider
+
+if (typeof window !== 'undefined') {
+  window.parseUPISMS = parseUPISMS;
+}
 import { AuthProvider } from './context/AuthContext.jsx';
 
 // Programmatically unregister active service workers to prevent hybrid app cache issues

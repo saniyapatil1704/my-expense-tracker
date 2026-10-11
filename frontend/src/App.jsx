@@ -80,8 +80,8 @@ import LoginPage from "./components/LoginPage";
 import PrivateRoute from "./components/PrivateRoute";
 import CategoriesPage from "./components/CategoriesPage";
 
-// Native UPI auto-detect exists but is intentionally disabled until Phase 2 is deliberately scoped and tested.
-const UPI_AUTO_DETECT_ENABLED = false; 
+// Native UPI auto-detect enabled for Phase 2 notification listening pipeline.
+const UPI_AUTO_DETECT_ENABLED = true;
 
 // Handles UPI deep-link from notification tap
 // Must be inside <Router> to use useLocation/useNavigate

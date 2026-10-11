@@ -2,10 +2,13 @@ import React, { useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 
+import { useTransaction } from '../context/TransactionContext';
+
 const LoginPage = () => {
   const emailRef = useRef();
   const passwordRef = useRef();
   const { login } = useAuth();
+  const { notificationPrefill } = useTransaction();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,7 +20,18 @@ const LoginPage = () => {
       setError('');
       setLoading(true);
       await login(emailRef.current.value, passwordRef.current.value);
-      navigate('/');
+
+      const hasPendingData = Boolean(
+        notificationPrefill ||
+        (typeof window !== 'undefined' && window.pendingUpiSMS) ||
+        (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pending_upi_sms'))
+      );
+
+      if (hasPendingData) {
+        navigate('/add', { replace: true });
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       setError('Failed to log in: ' + error.message);
     }
@@ -30,7 +44,7 @@ const LoginPage = () => {
       <div className="w-full max-w-md my-8">
         <div className="bg-brand-card rounded-2xl shadow-brand border border-brand-accent/5 p-8">
           <h2 className="text-3xl font-serif font-black text-center mb-8 text-brand-text">Welcome Back</h2>
-          
+
           {error && (
             <div className="bg-brand-coral-light border border-brand-coral/20 text-brand-coral px-4 py-3 rounded-xl mb-6 text-sm">
               {error}

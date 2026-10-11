@@ -7,28 +7,29 @@
 export function parseUPISMS(smsText) {
   if (!smsText) return null;
 
-  // Amount patterns: Rs.500, INR 500, ₹500, Rs 500.00
+  // Amount patterns: Rs.500, INR 25,000.00, ₹500, Rs 500.00
   const amountPatterns = [
-    /(?:Rs\.?|INR|₹)\s*(\d+(?:\.\d{1,2})?)/i,
-    /(\d+(?:\.\d{1,2})?)\s*(?:Rs\.?|INR|₹)/i,
+    /(?:Rs\.?|INR|₹)\s*([\d,]+(?:\.\d{1,2})?)/i,
+    /([\d,]+(?:\.\d{1,2})?)\s*(?:Rs\.?|INR|₹)/i,
   ];
 
   let amount = null;
   for (const pattern of amountPatterns) {
     const match = smsText.match(pattern);
     if (match) {
-      amount = parseFloat(match[1]);
+      amount = parseFloat(match[1].replace(/,/g, ''));
       break;
     }
   }
 
   if (!amount) return null;
 
-  // Merchant / receiver name patterns
+  // Merchant / receiver / sender name patterns
   const merchantPatterns = [
-    /(?:to|paid to|sent to|transferred to)\s+([A-Za-z0-9\s&._-]{2,30}?)(?:\s+on|\s+via|\s+using|\.|$)/i,
-    /(?:at|@)\s+([A-Za-z0-9\s&._-]{2,30}?)(?:\s+on|\s+via|\.|$)/i,
-    /UPI\s*[:-]\s*([A-Za-z0-9\s&._-]{2,30}?)(?:\s+on|\s+via|\.|$)/i,
+    /(?:from|received from|credited by|by|received ₹?[\d,]+(?:\.\d{1,2})?\s*from)\s+([A-Za-z0-9\s&._-]{2,35}?)(?:,|\s+on|\s+via|\s+using|\.|$)/i,
+    /(?:to|paid to|sent to|transferred to)\s+([A-Za-z0-9\s&._-]{2,35}?)(?:,|\s+on|\s+via|\s+using|\.|$)/i,
+    /(?:at|@)\s+([A-Za-z0-9\s&._-]{2,35}?)(?:,|\s+on|\s+via|\.|$)/i,
+    /UPI\s*[:-]\s*([A-Za-z0-9\s&._-]{2,35}?)(?:,|\s+on|\s+via|\.|$)/i,
   ];
 
   let merchant = 'UPI Payment';

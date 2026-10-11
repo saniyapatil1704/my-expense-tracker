@@ -1,5 +1,9 @@
 {
   "appId": "com.dailybalance.tracker",
   "appName": "Daily Balance",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
 }
