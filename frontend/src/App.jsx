@@ -141,7 +141,7 @@ function UPIDeepLinkHandler() {
     if (!UPI_AUTO_DETECT_ENABLED) return;
     const processSMS = (data) => {
       if (!data) return;
-      console.log('Processing Native SMS data:', data);
+      console.log('[DIAG] UPIDeepLinkHandler.processSMS: prefill incoming=yes, navigating to /add');
       setNotificationPrefill({
         amount: data.amount,
         description: data.description || 'UPI Payment',
@@ -155,11 +155,15 @@ function UPIDeepLinkHandler() {
 
     // 1. Check if there was a pending SMS before React mounted
     if (window.pendingUpiSMS) {
+      console.log('[DIAG] UPIDeepLinkHandler mount: window.pendingUpiSMS present=yes');
       processSMS(window.pendingUpiSMS);
+    } else {
+      console.log('[DIAG] UPIDeepLinkHandler mount: window.pendingUpiSMS present=no');
     }
 
     // 2. Listen for future events (when app is already running)
     const handleNativeSMS = (event) => {
+      console.log('[DIAG] UPIDeepLinkHandler event: upi_sms_received received');
       processSMS(event.detail);
     };
 

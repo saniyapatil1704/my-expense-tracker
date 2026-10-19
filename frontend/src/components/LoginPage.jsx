@@ -27,6 +27,8 @@ const LoginPage = () => {
         (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pending_upi_sms'))
       );
 
+      console.log('[DIAG] LoginPage post-login: notificationPrefill present=' + (notificationPrefill ? 'yes' : 'no') + ', window.pendingUpiSMS present=' + ((typeof window !== 'undefined' && window.pendingUpiSMS) ? 'yes' : 'no') + ', hasPendingData=' + (hasPendingData ? 'yes' : 'no') + ', targetRoute=' + (hasPendingData ? '/add' : '/'));
+
       if (hasPendingData) {
         navigate('/add', { replace: true });
       } else {

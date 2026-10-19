@@ -66,16 +66,34 @@ public class TransactionNotificationListener extends NotificationListenerService
     );
 
     private static final java.util.regex.Pattern EXCLUSION_PATTERN = java.util.regex.Pattern.compile(
-            "\\b(otp|verification\\s*code|bill\\s+due|due\\s+on|due\\s+date|failed|declined)\\b",
+            "\\b(otp|verification\\s*code|bill\\s+due|due\\s+on|due\\s+date|failed|declined|recharge|validity|talktime|data\\s+pack|plan\\s+expires)\\b",
             java.util.regex.Pattern.CASE_INSENSITIVE
     );
 
-    public static boolean isTransactionNotification(String title, String body, boolean isDefaultSms) {
-        String titleStr = title == null ? "" : title;
-        String bodyStr = body == null ? "" : body;
+    // Alphanumeric sender ID regex: e.g. "VM-BANKX" (2 letters, hyphen, 3-10 alphanumeric) or 3-11 all-caps chars with no spaces
+    private static final java.util.regex.Pattern SENDER_ID_PATTERN = java.util.regex.Pattern.compile(
+            "^[A-Z]{2}-[A-Z0-9]{3,10}$|^[A-Z0-9]{3,11}$"
+    );
 
-        // If package is default SMS, examine BODY only to prevent contact names contributing keywords/digits
-        // For other allowlisted packages (Bank/UPI apps), examine title + body combined
+    public static boolean isTransactionNotification(String title, String body, boolean isDefaultSms) {
+        return isTransactionNotification(title, body, isDefaultSms, BuildConfig.DEBUG);
+    }
+
+    public static boolean isTransactionNotification(String title, String body, boolean isDefaultSms, boolean isDebug) {
+        String titleStr = title == null ? "" : title.trim();
+        String bodyStr = body == null ? "" : body.trim();
+
+        // If package is default SMS:
+        if (isDefaultSms) {
+            // In release mode (!isDebug), require a bank-style alphanumeric sender ID in title
+            if (!isDebug) {
+                if (!SENDER_ID_PATTERN.matcher(titleStr).matches()) {
+                    return false;
+                }
+            }
+        }
+
+        // Target text: body only for default SMS, title + body for bank/UPI apps
         String targetText = isDefaultSms ? bodyStr : (titleStr + " " + bodyStr).trim();
 
         if (targetText.isEmpty()) {
@@ -98,6 +116,28 @@ public class TransactionNotificationListener extends NotificationListenerService
         }
 
         return true;
+    }
+
+    public static String buildAlertSummary(String fullMessage) {
+        if (fullMessage == null || fullMessage.isEmpty()) {
+            return "Possible transaction. Tap to review";
+        }
+
+        java.util.regex.Matcher currMatcher = CURRENCY_PATTERN.matcher(fullMessage);
+        java.util.regex.Matcher keyMatcher = KEYWORD_PATTERN.matcher(fullMessage);
+
+        if (currMatcher.find() && keyMatcher.find()) {
+            String rawAmount = currMatcher.group().trim();
+            // Normalize currency prefix to ₹ for display
+            String normalizedAmount = rawAmount.replaceAll("(?i)^(?:rs\\.?|inr)\\s*", "₹").trim();
+            if (!normalizedAmount.startsWith("₹")) {
+                normalizedAmount = "₹" + normalizedAmount;
+            }
+            String action = keyMatcher.group().toLowerCase();
+            return normalizedAmount + " " + action + ". Tap to review";
+        }
+
+        return "Possible transaction. Tap to review";
     }
 
     @Override
@@ -200,11 +240,13 @@ public class TransactionNotificationListener extends NotificationListenerService
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        String summaryText = buildAlertSummary(messageText);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle("New Transaction Detected")
-                .setContentText("Tap to log: " + messageText)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText("Tap to log transaction:\n" + messageText))
+                .setContentText(summaryText)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(summaryText))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                 .setAutoCancel(true)

@@ -51,7 +51,7 @@
 //           <option value="expense">Expense</option>
 //           <option value="income">Income</option>
 //         </select>
-        
+
 //         {/* New: Category dropdown */}
 //         <select
 //           name="category"
@@ -157,6 +157,7 @@ const TransactionForm = () => {
       }
     }
 
+    console.log('[DIAG] TransactionForm effect: consuming notificationPrefill, clearing it now');
     setNotificationPrefill(null); // Clear after use
   }, [notificationPrefill, categories]);
 
@@ -189,9 +190,9 @@ const TransactionForm = () => {
       </div>
 
       <h2 className="text-xl font-serif font-black text-brand-text mb-6 pb-4 border-b border-brand-accent/10">Add Transaction</h2>
-      
+
       <form onSubmit={handleAddTransaction} className="space-y-6">
-        
+
         {/* Dominant Amount Input Section */}
         <div className="relative flex flex-col items-center py-2 mb-2">
           <span className="text-xs font-bold text-brand-text/50 uppercase tracking-wider mb-2">Amount</span>
@@ -216,22 +217,20 @@ const TransactionForm = () => {
             <button
               type="button"
               onClick={() => handleInputChange({ target: { name: 'type', value: 'expense' } })}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all min-h-[40px] ${
-                newTransaction.type === 'expense'
+              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all min-h-[40px] ${newTransaction.type === 'expense'
                   ? 'bg-brand-coral text-white shadow-brand'
                   : 'text-brand-text/70 hover:text-brand-text'
-              }`}
+                }`}
             >
               Expense
             </button>
             <button
               type="button"
               onClick={() => handleInputChange({ target: { name: 'type', value: 'income' } })}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all min-h-[40px] ${
-                newTransaction.type === 'income'
+              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all min-h-[40px] ${newTransaction.type === 'income'
                   ? 'bg-brand-accent text-white shadow-brand'
                   : 'text-brand-text/70 hover:text-brand-text'
-              }`}
+                }`}
             >
               Income
             </button>
@@ -297,7 +296,7 @@ const TransactionForm = () => {
           <label className="block text-xs font-bold text-brand-text/50 uppercase tracking-wider">
             Receipt / Attachment (Optional)
           </label>
-          
+
           {!newTransaction.attachment ? (
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-brand-accent/20 rounded-xl p-4 bg-white hover:bg-brand-accent/5 cursor-pointer transition-all min-h-[80px]">
               <div className="flex flex-col items-center space-y-1">

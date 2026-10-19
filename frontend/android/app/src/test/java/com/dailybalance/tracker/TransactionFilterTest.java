@@ -84,6 +84,52 @@ public class TransactionFilterTest {
     public void testDueToAllowed_WhenTransaction() {
         // "due to" should not be blocked by the "due" exclusion
         assertTrue(TransactionNotificationListener.isTransactionNotification(
-                "BankAlert", "Rs.1500 debited due to online order", true));
+                "BankAlert", "Rs.1500 debited due to online order", true, true));
+    }
+
+    @Test
+    public void testSenderId_AlphanumericAllowedInRelease() {
+        // VM-BANKX sender in release mode: alert
+        assertTrue(TransactionNotificationListener.isTransactionNotification(
+                "VM-BANKX", "Rs.500 debited for CoffeeShop", true, false));
+    }
+
+    @Test
+    public void testSenderId_ContactNameRejectedInRelease() {
+        // Contact "Alex" in release mode: no alert
+        assertFalse(TransactionNotificationListener.isTransactionNotification(
+                "Alex", "Rs.500 debited for CoffeeShop", true, false));
+    }
+
+    @Test
+    public void testSenderId_ContactNameAllowedInDebug() {
+        // Contact "Alex" in debug mode: alert allowed for friend testing
+        assertTrue(TransactionNotificationListener.isTransactionNotification(
+                "Alex", "Rs.500 debited for CoffeeShop", true, true));
+    }
+
+    @Test
+    public void testExclusion_RechargeTextRejectedInAllModes() {
+        // Recharge SMS: rejected in both debug and release
+        assertFalse(TransactionNotificationListener.isTransactionNotification(
+                "VM-AIRTEL", "recharge of Rs. 399 successfully credited to your Airtel number", true, false));
+        assertFalse(TransactionNotificationListener.isTransactionNotification(
+                "VM-AIRTEL", "recharge of Rs. 399 successfully credited to your Airtel number", true, true));
+    }
+
+    @Test
+    public void testExclusion_ValidityAndTalktimeRejected() {
+        assertFalse(TransactionNotificationListener.isTransactionNotification(
+                "VM-TELCO", "Rs.199 paid for talktime with 28 days validity", true, true));
+    }
+
+    @Test
+    public void testAlertSummary_ParsedAmountAndType() {
+        assertEquals("₹399 credited. Tap to review",
+                TransactionNotificationListener.buildAlertSummary("Rs. 399 credited to your account"));
+        assertEquals("₹500 debited. Tap to review",
+                TransactionNotificationListener.buildAlertSummary("Rs.500 debited for CoffeeShop"));
+        assertEquals("₹200 paid. Tap to review",
+                TransactionNotificationListener.buildAlertSummary("Paid ₹200 to Alex via UPI"));
     }
 }
