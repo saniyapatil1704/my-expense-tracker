@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { BrandLogo } from './BrandLogo';
 
 import { useTransaction } from '../context/TransactionContext';
 
@@ -45,7 +46,11 @@ const LoginPage = () => {
     <div className="min-h-screen p-4 bg-brand-bg flex justify-center items-center">
       <div className="w-full max-w-md my-8">
         <div className="bg-brand-card rounded-2xl shadow-brand border border-brand-accent/5 p-8">
-          <h2 className="text-3xl font-serif font-black text-center mb-8 text-brand-text">Welcome Back</h2>
+          <div className="flex flex-col items-center justify-center mb-6">
+            <BrandLogo size="lg" className="mb-2.5" />
+            <span className="text-xs font-bold uppercase tracking-widest text-brand-accent/70">Daily Balance</span>
+          </div>
+          <h2 className="text-3xl font-serif font-black text-center mb-6 text-brand-text">Welcome Back</h2>
 
           {error && (
             <div className="bg-brand-coral-light border border-brand-coral/20 text-brand-coral px-4 py-3 rounded-xl mb-6 text-sm">
