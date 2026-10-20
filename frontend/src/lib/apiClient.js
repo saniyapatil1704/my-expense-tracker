@@ -1,5 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-export const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY || import.meta.env.TOKEN_KEY || 'expense_tracker_token';
+export const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY || 'expense_tracker_token';
 
 let onUnauthorizedCallback = null;
 

@@ -166,7 +166,7 @@ const TransactionForm = () => {
       {/* UPI Notification Banner */}
       <UPINotificationSetup />
 
-      {/* Quick Add Section */}
+      {/* Quick Add Section (Commented out)
       <h3 className="text-xs font-bold text-brand-text/50 uppercase tracking-wider mb-3">Quick Add</h3>
       <div className="flex gap-3 mb-6">
         <button
@@ -188,6 +188,7 @@ const TransactionForm = () => {
           <span>Bus Fare (₹62)</span>
         </button>
       </div>
+      */}
 
       <h2 className="text-xl font-serif font-black text-brand-text mb-6 pb-4 border-b border-brand-accent/10">Add Transaction</h2>
 

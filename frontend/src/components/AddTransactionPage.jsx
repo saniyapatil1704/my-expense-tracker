@@ -54,7 +54,7 @@ const AddTransactionPage = () => {
             </div>
           </div>
 
-          {/* Quick Tip Card */}
+          {/* Quick Tip Card (Commented out)
           <div className="bg-brand-card rounded-2xl shadow-brand border border-brand-accent/5 p-6">
             <div className="flex items-center space-x-2 mb-3">
               <span className="text-lg">💡</span>
@@ -64,6 +64,7 @@ const AddTransactionPage = () => {
               Use the <strong>Quick Add</strong> buttons at the top of the form to record common recurring purchases like meals or transit fares in a single tap.
             </p>
           </div>
+          */}
         </div>
 
       </div>
