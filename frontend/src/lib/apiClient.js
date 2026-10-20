@@ -1,5 +1,5 @@
-const BASE_URL = 'http://localhost:3000';
-const TOKEN_KEY = 'expense_tracker_token';
+const BASE_URL = import.meta.env.VITE_API_URL;
+const TOKEN_KEY = import.meta.env.TOKEN_KEY;
 
 let onUnauthorizedCallback = null;
 
@@ -17,16 +17,16 @@ const handleUnauthorized = () => {
 export const apiClient = {
   async request(path, options = {}) {
     const url = path.startsWith('http') ? path : `${BASE_URL}${path}`;
-    
+
     const token = localStorage.getItem(TOKEN_KEY);
     const headers = {
       ...options.headers,
     };
-    
+
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
     if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
     }
@@ -47,7 +47,7 @@ export const apiClient = {
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorMessage;
-      } catch (_) {}
+      } catch (_) { }
       const error = new Error(errorMessage);
       error.status = 401;
       throw error;
@@ -58,8 +58,8 @@ export const apiClient = {
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorMessage;
-      } catch (_) {}
-      
+      } catch (_) { }
+
       const error = new Error(errorMessage);
       error.status = response.status;
       throw error;
