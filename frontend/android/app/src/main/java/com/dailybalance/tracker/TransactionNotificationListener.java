@@ -75,11 +75,11 @@ public class TransactionNotificationListener extends NotificationListenerService
             "^[A-Z]{2}-[A-Z0-9]{3,10}$|^[A-Z0-9]{3,11}$"
     );
 
-    public static boolean isTransactionNotification(String title, String body, boolean isDefaultSms) {
-        return isTransactionNotification(title, body, isDefaultSms, BuildConfig.DEBUG);
+    public static String getFilterRejectionReason(String title, String body, boolean isDefaultSms) {
+        return getFilterRejectionReason(title, body, isDefaultSms, BuildConfig.DEBUG);
     }
 
-    public static boolean isTransactionNotification(String title, String body, boolean isDefaultSms, boolean isDebug) {
+    public static String getFilterRejectionReason(String title, String body, boolean isDefaultSms, boolean isDebug) {
         String titleStr = title == null ? "" : title.trim();
         String bodyStr = body == null ? "" : body.trim();
 
@@ -88,7 +88,7 @@ public class TransactionNotificationListener extends NotificationListenerService
             // In release mode (!isDebug), require a bank-style alphanumeric sender ID in title
             if (!isDebug) {
                 if (!SENDER_ID_PATTERN.matcher(titleStr).matches()) {
-                    return false;
+                    return "SENDER_ID_NOT_ALPHANUMERIC";
                 }
             }
         }
@@ -97,25 +97,33 @@ public class TransactionNotificationListener extends NotificationListenerService
         String targetText = isDefaultSms ? bodyStr : (titleStr + " " + bodyStr).trim();
 
         if (targetText.isEmpty()) {
-            return false;
+            return "EMPTY_TARGET_TEXT";
         }
 
         // 1. Negative exclusion check
         if (EXCLUSION_PATTERN.matcher(targetText).find()) {
-            return false;
+            return "EXCLUSION_PATTERN_MATCHED";
         }
 
         // 2. Currency pattern check
         if (!CURRENCY_PATTERN.matcher(targetText).find()) {
-            return false;
+            return "CURRENCY_PATTERN_MISSING";
         }
 
         // 3. Whole-word transaction keyword check
         if (!KEYWORD_PATTERN.matcher(targetText).find()) {
-            return false;
+            return "KEYWORD_PATTERN_MISSING";
         }
 
-        return true;
+        return null;
+    }
+
+    public static boolean isTransactionNotification(String title, String body, boolean isDefaultSms) {
+        return isTransactionNotification(title, body, isDefaultSms, BuildConfig.DEBUG);
+    }
+
+    public static boolean isTransactionNotification(String title, String body, boolean isDefaultSms, boolean isDebug) {
+        return getFilterRejectionReason(title, body, isDefaultSms, isDebug) == null;
     }
 
     public static String buildAlertSummary(String fullMessage) {
@@ -165,11 +173,15 @@ public class TransactionNotificationListener extends NotificationListenerService
         }
 
         if (!isAllowlisted) {
+            Log.w(TAG, "Notification Filter Rejected -> Pkg: [" + packageName + "] | Rule: [NOT_IN_ALLOWLIST]");
             return;
         }
 
         Notification notification = sbn.getNotification();
-        if (notification == null) return;
+        if (notification == null) {
+            Log.w(TAG, "Notification Filter Rejected -> Pkg: [" + packageName + "] | Rule: [NULL_NOTIFICATION]");
+            return;
+        }
 
         Bundle extras = notification.extras;
         String title = "";
@@ -198,10 +210,9 @@ public class TransactionNotificationListener extends NotificationListenerService
             Log.d(TAG, "Allowlisted Package Match -> Pkg: [" + packageName + "]");
         }
 
-        if (!isTransactionNotification(title, text, isDefaultSms)) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "Notification content ignored (not a financial transaction) for Pkg: [" + packageName + "]");
-            }
+        String rejectionReason = getFilterRejectionReason(title, text, isDefaultSms, BuildConfig.DEBUG);
+        if (rejectionReason != null) {
+            Log.w(TAG, "Notification Filter Rejected -> Pkg: [" + packageName + "] | Rule: [" + rejectionReason + "]");
             return;
         }
 
