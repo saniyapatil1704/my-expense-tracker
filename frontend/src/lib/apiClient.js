@@ -1,5 +1,5 @@
-const BASE_URL = import.meta.env.VITE_API_URL;
-const TOKEN_KEY = import.meta.env.TOKEN_KEY;
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY || import.meta.env.TOKEN_KEY || 'expense_tracker_token';
 
 let onUnauthorizedCallback = null;
 
@@ -9,6 +9,7 @@ export const setOnUnauthorized = (cb) => {
 
 const handleUnauthorized = () => {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem('user');
   if (onUnauthorizedCallback) {
     onUnauthorizedCallback();
   }

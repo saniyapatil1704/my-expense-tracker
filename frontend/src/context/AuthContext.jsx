@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { apiClient, setOnUnauthorized } from '../lib/apiClient';
+import { apiClient, setOnUnauthorized, TOKEN_KEY } from '../lib/apiClient';
 
 const AuthContext = createContext();
 
@@ -18,15 +18,27 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('expense_tracker_token');
+      const token = localStorage.getItem(TOKEN_KEY);
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        try {
+          setCurrentUser(mapUser(JSON.parse(savedUser)));
+        } catch (_) {}
+      }
+
       if (token) {
         try {
-          const user = await apiClient.get('/auth/me');
-          setCurrentUser(mapUser(user));
+          const res = await apiClient.get('/auth/me');
+          const user = mapUser(res?.data || res);
+          setCurrentUser(user);
+          if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+          }
         } catch (error) {
           console.error('Session restoration failed:', error);
           setCurrentUser(null);
-          localStorage.removeItem('expense_tracker_token');
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem('user');
         }
       }
       setLoading(false);
@@ -35,6 +47,8 @@ export function AuthProvider({ children }) {
     // Listen to global 401 logouts
     setOnUnauthorized(() => {
       setCurrentUser(null);
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem('user');
     });
 
     initializeAuth();
@@ -49,8 +63,17 @@ export function AuthProvider({ children }) {
       };
       const response = await apiClient.post('/auth/register', payload);
       
-      localStorage.setItem('expense_tracker_token', response.access_token);
-      setCurrentUser(mapUser(response.user));
+      const token = response?.data?.access_token || response?.access_token || response?.data?.token || response?.token;
+      const user = response?.data?.user || response?.user;
+
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token);
+      }
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+        setCurrentUser(mapUser(user));
+      }
+
       return response;
     } catch (error) {
       if (error.status === 409 || error.message.includes('Email already in use')) {
@@ -67,8 +90,17 @@ export function AuthProvider({ children }) {
     try {
       const response = await apiClient.post('/auth/login', { email, password });
       
-      localStorage.setItem('expense_tracker_token', response.access_token);
-      setCurrentUser(mapUser(response.user));
+      const token = response?.data?.access_token || response?.access_token || response?.data?.token || response?.token;
+      const user = response?.data?.user || response?.user;
+
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token);
+      }
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+        setCurrentUser(mapUser(user));
+      }
+
       return response;
     } catch (error) {
       if (error.status === 401 || error.message.includes('Invalid credentials')) {
@@ -82,7 +114,8 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    localStorage.removeItem('expense_tracker_token');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('user');
     setCurrentUser(null);
   }
 
